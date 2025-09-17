@@ -5,3 +5,14 @@ $cor-tarefa: #f0eded;
 $font-tamanho: 16px;
 $font-titulo: 24px;
 $font-subtitulo: 20px;
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  list-style: none;
+  text-decoration: none;
+  font-family: Roboto;
+}
