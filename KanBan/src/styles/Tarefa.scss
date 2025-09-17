@@ -1,0 +1,13 @@
+@use './variaveis.scss' as *;
+
+.tarefa-item {
+    background-color: #fafafa;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.tarefa-item p {
+    margin: 5px 0;
+}

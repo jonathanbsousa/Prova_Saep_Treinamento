@@ -1,0 +1,35 @@
+@use "./variaveis.scss" as *;
+
+.formulario{
+    max-width: 600px;
+    padding: 10px;
+    background-color: $background;
+    display: flex;
+    flex-direction: column;
+
+    h2{
+        font-size: 20px;
+        color: $cor-destaque;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+        text-align: center;
+    }
+
+    label{
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    input{
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid $cor-destaque;
+    }
+    button{
+        background-color: $cor-destaque;
+        color: $background;
+        padding: 10px;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+}

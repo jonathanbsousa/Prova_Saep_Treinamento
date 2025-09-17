@@ -1,0 +1,33 @@
+@use './variaveis.scss' as *;
+
+.containerQuadro {
+    width: 100%;    
+    .containerQuadros {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        width: 100vw;
+
+        .quadro {
+            background-color: $background;
+            max-width: 1660px;
+            margin: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+
+            .titulo {
+                font-size: $font-subtitulo;
+            }
+
+            .atividades {
+                display: flex;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+
+        }
+    }
+}
