@@ -2,139 +2,208 @@ import React, { useState, useEffect } from 'react';
 import { z } from 'zod';
 
 const tarefaSchema = z.object({
-    descricao: z.string().min(1, 'A descrição é obrigatória'),
-    setor: z.string().min(1, 'O setor é obrigatório'),
-    usuario: z.string().min(1, 'O usuário é obrigatório'),
-    prioridade: z.enum(['Alta', 'Média', 'Baixa'], 'Prioridade inválida'),
-    status: z.enum(['fazer', 'fazendo', 'concluido'], 'Status inválido')
+  descricao: z.string().min(1, 'A descrição é obrigatória'),
+  setor: z.string().min(1, 'O setor é obrigatório'),
+  usuario: z.string().min(1, 'O usuário é obrigatório'),
+  prioridade: z.enum(['Alta', 'Média', 'Baixa'], { errorMap: () => ({ message: 'Selecione uma prioridade válida' }) }),
+  status: z.enum(['fazer', 'fazendo', 'concluido'], { errorMap: () => ({ message: 'Selecione um status válido' }) })
 });
 
+const API_URLS = {
+  USUARIOS: 'http://127.0.0.1:8000/api/pessoas/',
+  TAREFAS: 'http://127.0.0.1:8000/api/tarefas/',
+};
+
 export function CardTarefas() {
-    const [descricao, setDescricao] = useState('');
-    const [setor, setSetor] = useState('');
-    const [usuario, setUsuario] = useState('');
-    const [prioridade, setPrioridade] = useState('');
-    const [status, setStatus] = useState('fazer');
-    const [erro, setErro] = useState('');
-    const [sucesso, setSucesso] = useState('');
-    const [usuarios, setUsuarios] = useState([]);
+  const [formData, setFormData] = useState({
+    descricao: '',
+    setor: '',
+    usuario: '',
+    prioridade: '',
+    status: 'fazer',
+  });
+  
+  const [erros, setErros] = useState({});
+  const [statusGeral, setStatusGeral] = useState({ erro: '', sucesso: '' });
 
-    const fetchUsuarios = async () => {
-        try {
-            const response = await fetch('http://127.0.0.1:8000/api/pessoas/');
-            if (response.ok) {
-                const data = await response.json();
-                setUsuarios(data); 
-            } else {
-                setErro('Erro ao carregar usuários');
-            }
-        } catch (error) {
-            setErro('Erro de rede ou servidor');
-        }
-    };
+  const [usuarios, setUsuarios] = useState([]);
 
-    useEffect(() => {
-        fetchUsuarios();  
-    }, []);
+  const fetchUsuarios = async () => {
+    try {
+      const response = await fetch(API_URLS.USUARIOS);
+      if (response.ok) {
+        const data = await response.json();
+        setUsuarios(data);
+      } else {
+        setStatusGeral({ erro: 'Falha ao carregar a lista de usuários.' });
+      }
+    } catch (error) {
+      setStatusGeral({ erro: 'Não foi possível conectar ao servidor para carregar usuários.' });
+    }
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+  useEffect(() => {
+    fetchUsuarios();
+  }, []);
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+        ...prevState,
+        [name]: value,
+    }));
+  };
 
-        setErro('');
-        setSucesso('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErros({});
+    setStatusGeral({ erro: '', sucesso: '' });
 
-        const validation = tarefaSchema.safeParse({ descricao, setor, usuario, prioridade, status });
+    const validation = tarefaSchema.safeParse(formData);
 
-        if (!validation.success) {
-            setErro(validation.error.errors.map(err => err.message).join(', '));
-            return;
-        }
+    if (!validation.success) {
+      const fieldErrors = {};
+      validation.error.errors.forEach(err => {
+        fieldErrors[err.path[0]] = err.message;
+      });
+      setErros(fieldErrors);
+      const firstErrorField = Object.keys(fieldErrors)[0];
+      if (firstErrorField) {
+        document.getElementById(firstErrorField)?.focus();
+      }
+      return;
+    }
 
-        const usuarioId = parseInt(usuario, 10);
+    const { descricao, setor, usuario, prioridade, status } = validation.data;
+    const usuarioId = parseInt(usuario, 10);
 
-        try {
-            const response = await fetch('http://127.0.0.1:8000/api/tarefas/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ descricao, setor, usuario: usuarioId, prioridade, status }),  // Passando 'usuario' como inteiro
-            });
+    try {
+      const response = await fetch(API_URLS.TAREFAS, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ descricao, setor, usuario: usuarioId, prioridade, status }),
+      });
 
-            if (response.ok) {
-                setSucesso('Tarefa cadastrada com sucesso!');
-            } else {
-                const errorData = await response.json();
-                setErro(errorData.detail || 'Erro ao cadastrar tarefa');
-            }
-        } catch (error) {
-            setErro('Erro de rede ou servidor');
-        }
-    };
+      if (response.ok) {
+        setStatusGeral({ sucesso: 'Tarefa cadastrada com sucesso!' });
+        setFormData({
+            descricao: '',
+            setor: '',
+            usuario: '',
+            prioridade: '',
+            status: 'fazer',
+        });
+      } else {
+        const errorData = await response.json();
+        setStatusGeral({ erro: errorData.detail || 'Erro ao cadastrar a tarefa.' });
+      }
+    } catch (error) {
+      setStatusGeral({ erro: 'Erro de rede ou servidor. Tente novamente mais tarde.' });
+    }
+  };
 
-    return (
-        <form className="formulario" onSubmit={handleSubmit}>
-            <h2 className="titulo">Cadastro da Tarefa</h2>
+  return (
+    <form className="formulario" onSubmit={handleSubmit} aria-labelledby="form-title">
+      <h2 id="form-title" className="titulo">Cadastro da Tarefa</h2>
 
-            {erro && <p style={{ color: 'red' }}>{erro}</p>}
-            {sucesso && <p style={{ color: 'green' }}>{sucesso}</p>}
+      {statusGeral.erro && <p role="alert" style={{ color: 'red' }}>{statusGeral.erro}</p>}
+      {statusGeral.sucesso && <p role="status" style={{ color: 'green' }}>{statusGeral.sucesso}</p>}
 
-            <label>Descrição:</label>
-            <input
-                type="text"
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-                required
-            />
+      <div>
+        <label htmlFor="descricao">Descrição:</label>
+        <input
+          id="descricao"
+          name="descricao"
+          type="text"
+          value={formData.descricao}
+          onChange={handleChange}
+          required
+          aria-required="true" 
+          aria-invalid={!!erros.descricao} 
+          aria-describedby={erros.descricao ? 'descricao-error' : undefined} 
+        />
+        {erros.descricao && <p id="descricao-error" role="alert" style={{ color: 'red', fontSize: '0.9em' }}>{erros.descricao}</p>}
+      </div>
 
-            <label>Setor:</label>
-            <input
-                type="text"
-                value={setor}
-                onChange={(e) => setSetor(e.target.value)}
-                required
-            />
+      <div>
+        <label htmlFor="setor">Setor:</label>
+        <input
+          id="setor"
+          name="setor"
+          type="text"
+          value={formData.setor}
+          onChange={handleChange}
+          required
+          aria-required="true"
+          aria-invalid={!!erros.setor}
+          aria-describedby={erros.setor ? 'setor-error' : undefined}
+        />
+        {erros.setor && <p id="setor-error" role="alert" style={{ color: 'red', fontSize: '0.9em' }}>{erros.setor}</p>}
+      </div>
 
-            <label>Usuário:</label>
-            <select
-                value={usuario}
-                onChange={(e) => setUsuario(e.target.value)}
-                required
-            >
-                <option value="">Selecione um usuário</option>
-                {usuarios.map((user) => (
-                    <option key={user.id} value={user.id}>
-                        {user.nome}
-                    </option>
-                ))}
-            </select>
+      <div>
+        <label htmlFor="usuario">Usuário:</label>
+        <select
+          id="usuario"
+          name="usuario"
+          value={formData.usuario}
+          onChange={handleChange}
+          required
+          aria-required="true"
+          aria-invalid={!!erros.usuario}
+          aria-describedby={erros.usuario ? 'usuario-error' : undefined}
+        >
+          <option value="">Selecione um usuário</option>
+          {usuarios.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.nome}
+            </option>
+          ))}
+        </select>
+        {erros.usuario && <p id="usuario-error" role="alert" style={{ color: 'red', fontSize: '0.9em' }}>{erros.usuario}</p>}
+      </div>
+      
+      <div>
+        <label htmlFor="prioridade">Prioridade:</label>
+        <select
+          id="prioridade"
+          name="prioridade"
+          value={formData.prioridade}
+          onChange={handleChange}
+          required
+          aria-required="true"
+          aria-invalid={!!erros.prioridade}
+          aria-describedby={erros.prioridade ? 'prioridade-error' : undefined}
+        >
+          <option value="">Selecione a prioridade</option>
+          <option value="Alta">Alta</option>
+          <option value="Média">Média</option>
+          <option value="Baixa">Baixa</option>
+        </select>
+        {erros.prioridade && <p id="prioridade-error" role="alert" style={{ color: 'red', fontSize: '0.9em' }}>{erros.prioridade}</p>}
+      </div>
+      
+      <div>
+        <label htmlFor="status">Status:</label>
+        <select
+          id="status"
+          name="status"
+          value={formData.status}
+          onChange={handleChange}
+          required
+          aria-required="true"
+        >
+          <option value="fazer">A Fazer</option>
+          <option value="fazendo">Fazendo</option>
+          <option value="concluido">Concluído</option>
+        </select>
+      </div>
 
-            <label>Prioridade:</label>
-            <select
-                value={prioridade}
-                onChange={(e) => setPrioridade(e.target.value)}
-                required
-            >
-                <option value="">Selecione a prioridade</option>
-                <option value="Alta">Alta</option>
-                <option value="Média">Média</option>
-                <option value="Baixa">Baixa</option>
-            </select>
+      <a href="/">Voltar para a Home</a>
 
-            <label>Status:</label>
-            <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                required
-            >
-                <option value="fazer">A Fazer</option>
-                <option value="fazendo">Fazendo</option>
-                <option value="concluido">Concluído</option>
-            </select>
-
-            <a href="/"><h1>Home</h1></a>
-
-            <button type="submit">Cadastrar</button>
-        </form>
-    );
+      <button type="submit">Cadastrar</button>
+    </form>
+  );
 }
