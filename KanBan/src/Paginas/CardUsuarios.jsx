@@ -2,18 +2,16 @@ import React, { useState } from "react";
 import { z } from "zod";
 
 const userSchema = z.object({
-  nome: z.string().min(1, "O nome é obrigatório"),
+  username: z.string().min(1, "O nome é obrigatório"),
   email: z.string().email("O formato do email é inválido"),
-  senha: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
 });
 
 const API_REGISTER_URL = "http://127.0.0.1:8000/api/register/";
 
 export function CardUsuario() {
   const [formData, setFormData] = useState({
-    nome: "",
+    username: "",
     email: "",
-    senha: "",
   });
 
   const [erros, setErros] = useState({});
@@ -58,7 +56,7 @@ export function CardUsuario() {
 
       if (response.ok) {
         setStatusGeral({ sucesso: "Usuário cadastrado com sucesso!" });
-        setFormData({ nome: "", email: "", senha: "" });
+        setFormData({ username: "", email: ""});
       } else {
         const errorData = await response.json();
         setStatusGeral({
@@ -94,25 +92,25 @@ export function CardUsuario() {
         )}
 
         <div className="campoCadUsuario">
-          <label htmlFor="nome">Nome:</label>
+          <label htmlFor="username">Nome:</label>
           <input
-            id="nome"
-            name="nome"
+            id="username"
+            name="username"
             type="text"
-            value={formData.nome}
+            value={formData.username}
             onChange={handleChange}
             required
             aria-required="true"
-            aria-invalid={!!erros.nome}
-            aria-describedby={erros.nome ? "nome-error" : undefined}
+            aria-invalid={!!erros.username}
+            aria-describedby={erros.username ? "nome-error" : undefined}
           />
-          {erros.nome && (
+          {erros.username && (
             <p
               id="nome-error"
               role="alert"
               style={{ color: "red", fontSize: "0.9em" }}
             >
-              {erros.nome}
+              {erros.username}
             </p>
           )}
         </div>
@@ -138,31 +136,6 @@ export function CardUsuario() {
               style={{ color: "red", fontSize: "0.9em" }}
             >
               {erros.email}
-            </p>
-          )}
-        </div>
-
-        <div className="campoCadUsuario">
-          <label htmlFor="senha">Senha:</label>
-          <input
-            id="senha"
-            name="senha"
-            type="password"
-            autoComplete="new-password"
-            value={formData.senha}
-            onChange={handleChange}
-            required
-            aria-required="true"
-            aria-invalid={!!erros.senha}
-            aria-describedby={erros.senha ? "senha-error" : undefined}
-          />
-          {erros.senha && (
-            <p
-              id="senha-error"
-              role="alert"
-              style={{ color: "red", fontSize: "0.9em" }}
-            >
-              {erros.senha}
             </p>
           )}
         </div>

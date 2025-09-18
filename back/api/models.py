@@ -11,7 +11,7 @@ class Tarefa(models.Model):
     STATUS = [
         ('a fazer', 'A fazer'),
         ('fazendo', 'Fazendo'),
-        ('pronto', 'Pronto')
+        ('concluido', 'Concluido')
     ]
     
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tarefas')
