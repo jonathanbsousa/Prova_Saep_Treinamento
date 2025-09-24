@@ -1,64 +1,70 @@
-import React, { useState, useEffect } from 'react';
+import React from "react";
+import { useDrag, useDrop } from "react-dnd";
 
-export default function Coluna({ tarefas }) {
-    const [tarefasAtualizadas, setTarefasAtualizadas] = useState(tarefas);
+const ItemTypes = { TAREFA: "tarefa" };
 
-    useEffect(() => {
-        console.log("Tarefas recebidas:", tarefas);
-        setTarefasAtualizadas(tarefas);
-    }, [tarefas]);
+function TarefaCard({ tarefa, onDrop }) {
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: ItemTypes.TAREFA,
+    item: { id: tarefa.id, status: tarefa.status },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  }));
 
-    const atualizarStatus = async (id, novoStatus) => {
-        try {
-            console.log(`Atualizando tarefa ${id} para status ${novoStatus}`);
-            const response = await fetch(`http://127.0.0.1:8000/api/tarefas/${id}/`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ status: novoStatus }), 
-            });
+  return (
+    <div
+      ref={drag}
+      className="tarefa-item"
+      style={{
+        opacity: isDragging ? 0.5 : 1,
+        cursor: "grab",
+        border: "1px solid #ccc",
+        padding: "8px",
+        marginBottom: "6px",
+        borderRadius: "8px",
+        background: "#fff",
+      }}
+    >
+      <p><strong>Id:</strong> {tarefa.id}</p>
+      <p><strong>Descrição:</strong> {tarefa.descricao}</p>
+      <p><strong>Setor:</strong> {tarefa.nome_setor}</p>
+      <p><strong>Usuário:</strong> {tarefa.usuario_nome}</p>
+      <p><strong>Prioridade:</strong> {tarefa.prioridade}</p>
+      <p><strong>Status:</strong> {tarefa.status}</p>
+    </div>
+  );
+}
 
-            if (response.ok) {
-                const dadosAtualizados = await response.json();
-                console.log("Tarefa atualizada:", dadosAtualizados); 
-                setTarefasAtualizadas((prevTarefas) =>
-                    prevTarefas.map((tarefa) =>
-                        tarefa.id === id ? { ...tarefa, status: novoStatus } : tarefa
-                    )
-                );
-            } else {
-                console.error('Erro ao atualizar a tarefa');
-            }
-        } catch (error) {
-            console.error('Erro de rede ou servidor', error);
-        }
-    };
+export default function Coluna({ status, tarefas, atualizarStatus }) {
+  const [, drop] = useDrop(() => ({
+    accept: ItemTypes.TAREFA,
+    drop: (item) => {
+      if (item.status !== status) {
+        atualizarStatus(item.id, status);
+      }
+    },
+  }));
 
-    return (
-        <div className="coluna">
-            {tarefasAtualizadas.length > 0 ? (
-                tarefasAtualizadas.map((tarefa) => (
-                    <div key={tarefa.id} className="tarefa-item">
-                        <p><strong>Id:</strong> {tarefa.id}</p>
-                        <p><strong>Descrição:</strong> {tarefa.descricao}</p>
-                        <p><strong>Setor:</strong> {tarefa.setor}</p>
-                        <p><strong>Prioridade:</strong> {tarefa.prioridade}</p>
-                        <p><strong>Status:</strong> {tarefa.status}</p>
-
-                        <select
-                            value={tarefa.status}
-                            onChange={(e) => atualizarStatus(tarefa.id, e.target.value)}
-                        >
-                            <option value="fazer">A Fazer</option>
-                            <option value="fazendo">Fazendo</option>
-                            <option value="concluido">Concluído</option>
-                        </select>
-                    </div>
-                ))
-            ) : (
-                <p>Não há tarefas nesta coluna.</p>
-            )}
-        </div>
-    );
+  return (
+    <div
+      ref={drop}
+      className="coluna"
+      style={{
+        minHeight: "300px",
+        flex: 1,
+        padding: "10px",
+        background: "#f5f5f5",
+        borderRadius: "10px",
+      }}
+    >
+      {tarefas.length > 0 ? (
+        tarefas.map((t) => (
+          <TarefaCard key={t.id} tarefa={t} />
+        ))
+      ) : (
+        <p>Nenhuma tarefa aqui.</p>
+      )}
+    </div>
+  );
 }

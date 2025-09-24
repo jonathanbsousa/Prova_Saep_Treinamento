@@ -33,7 +33,7 @@ export default function Tarefa() {
                     value={statusFiltro}
                     onChange={(e) => setStatusFiltro(e.target.value)}
                 >
-                    <option value="fazer">A Fazer</option>
+                    <option value="a fazer">A Fazer</option>
                     <option value="fazendo">Fazendo</option>
                     <option value="concluido">Concluído</option>
                 </select>

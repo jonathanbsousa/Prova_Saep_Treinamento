@@ -1,6 +1,5 @@
 import {Routes, Route } from 'react-router-dom'
 import { Inicial } from '../Paginas/inicial'
-import Quadro from '../components/Quadro'
 import { CardTarefas } from '../Paginas/CardTarefas'
 import { CardUsuario } from '../Paginas/CardUsuarios'
 

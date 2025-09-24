@@ -11,19 +11,17 @@ class SignUpView(CreateAPIView):
 class TarefaView(ListCreateAPIView):
     queryset = Tarefa.objects.all()
     serializer_class = TarefaSerializer
-    
-    # def perform_create(self, serializer):
-    #     serializer.save(usuario=self.request.user)
 
     def get_queryset(self):
-        return Tarefa.objects.filter(status='a fazer')
+        status = self.request.query_params.get('status')
+        if status:
+            return Tarefa.objects.filter(status=status)
+        return Tarefa.objects.all()
 
 class TarefaDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Tarefa.objects.all()
     serializer_class = TarefaSerializer
 
-    # def get_queryset(self):
-    #     return Tarefa.objects.filter(usuario=self.request.user)
 
 class UserListView(ListAPIView):
     
