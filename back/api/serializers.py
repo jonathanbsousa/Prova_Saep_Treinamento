@@ -2,7 +2,6 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import *
 from django.core.validators import RegexValidator
-import regex as re
 
 class UserSerializer(serializers.ModelSerializer):
 

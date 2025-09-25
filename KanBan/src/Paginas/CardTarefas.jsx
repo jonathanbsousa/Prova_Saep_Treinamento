@@ -21,6 +21,7 @@ export function CardTarefas() {
     descricao: "",
     nome_setor: "",
     usuario: "",
+    prioridade: "baixa",
     status: "a fazer",
   });
   const [usuarios, setUsuarios] = useState([]);
@@ -108,6 +109,16 @@ export function CardTarefas() {
               {u.username}
             </option>
           ))}
+        </select>
+        <select
+          name="prioridade"
+          value={formData.prioridade}
+          onChange={handleChange}
+          required
+        >
+          <option value="baixa">Baixa</option>
+          <option value="media">Média</option>
+          <option value="alta">Alta</option>
         </select>
         <select
           name="status"
