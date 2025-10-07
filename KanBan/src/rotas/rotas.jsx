@@ -8,8 +8,8 @@ export function Rotas(){
         <Routes>
             <Route path='/' element={<Inicial/>}/>
             <Route index element={<Inicial/>}/>
-            <Route path='cadUsuario' element={<CardUsuario/>}/>
-            <Route path='cadTarefa' element={<CardTarefas/>}/>
+            <Route path='/cadUsuario' element={<CardUsuario/>}/>
+            <Route path='/cadTarefa' element={<CardTarefas/>}/>
         </Routes>
     )
 }
